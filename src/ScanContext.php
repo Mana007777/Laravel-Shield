@@ -34,6 +34,12 @@ class ScanContext
             'packages' => 'dependency',
             'mw' => 'middleware',
             'http' => 'middleware',
+            'cmd' => 'rce',
+            'command' => 'rce',
+            'exec' => 'rce',
+            'deser' => 'deserialize',
+            'uploads' => 'upload',
+            'keys' => 'secrets',
         ];
         $toCanon = function (string $k) use ($aliases): string {
             $k = strtolower($k);

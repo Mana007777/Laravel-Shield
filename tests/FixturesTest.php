@@ -83,4 +83,27 @@ class FixturesTest extends TestCase
         $this->assertTrue($hasGlobal, 'Should report global stack from Kernel');
         $this->assertTrue($hasGroup, 'Should report at least one group from Kernel');
     }
+
+    public function test_advanced_offensive_scanners_detect_vulnerable_fixture(): void
+    {
+        $m = (new ScanManager())->run(
+            new ScanOptions(
+                path: __DIR__.'/../fixtures/vulnerable',
+                only: ['rce', 'ssrf', 'deserialize', 'upload', 'secrets'],
+                format: 'summary'
+            )
+        );
+        $this->assertNotEmpty($m->issues);
+
+        $byScanner = [];
+        foreach ($m->issues as $i) {
+            $byScanner[$i->scanner] = true;
+        }
+
+        $this->assertArrayHasKey('rce', $byScanner);
+        $this->assertArrayHasKey('ssrf', $byScanner);
+        $this->assertArrayHasKey('deserialize', $byScanner);
+        $this->assertArrayHasKey('upload', $byScanner);
+        $this->assertArrayHasKey('secrets', $byScanner);
+    }
 }

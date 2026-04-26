@@ -59,6 +59,11 @@ Useful flags:
 | `env` | `.env` / `.env.example`: `APP_DEBUG` in production, weak `DB_PASSWORD`, short/missing `APP_KEY`, test-like secrets, `.env` not in `.gitignore` |
 | `validation` | Controllers: `Request` with `input`/`get`/`all` and no `validate` / FormRequest on resource-like actions |
 | `sql` | `DB::…` with concatenation, `*Raw()` with `$` and no `?` bindings, `unprepared` |
+| `rce` | Command execution sinks: `exec`, `system`, `shell_exec`, `passthru`, `proc_open`, `popen`, backticks; escalates if dynamic/user input appears |
+| `ssrf` | Dynamic outbound request targets in `Http::get/post`, `curl_setopt(CURLOPT_URL, ...)`, `file_get_contents($url)` style sinks |
+| `deserialize` | `unserialize()` usage, especially with request/cookie input (object injection risk) |
+| `upload` | Upload sinks (`move`, `store`, `putFile`, `move_uploaded_file`) with weak/no visible validation patterns |
+| `secrets` | Hardcoded secret patterns (live tokens, AWS-like keys, private key blocks, suspicious credential literals) |
 | `csrf` | `VerifyCsrfToken` disabled on a route, non-empty CSRF `except` list, HTML forms (POST/PUT/…) missing `@csrf` / `_token` |
 | `mass` | Eloquent: `public $guarded = []`, empty `protected $guarded`, or model with no `fillable` / `guarded` |
 | `auth` | Routes whose path looks like admin/dashboard and no obvious `auth` middleware on the line; controllers `store`/`update`/… with no `authorize` |

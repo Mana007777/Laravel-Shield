@@ -27,7 +27,7 @@ class RunScanCommand extends Command
         $this->addArgument('path', InputArgument::OPTIONAL, 'Path to the Laravel app', '.');
         $this->addOption('format', 'f', InputOption::VALUE_REQUIRED, 'table, json, or summary', 'table');
         $this->addOption('severity', null, InputOption::VALUE_REQUIRED, 'Minimum severity: critical, high, medium, low, info');
-        $this->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated scanners: env,validation,sql,csrf,mass,auth,xss,dependency,debug');
+        $this->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated scanners: env,validation,sql,rce,ssrf,deserialize,upload,secrets,csrf,mass,auth,middleware,xss,dependency,debug');
         $this->addOption('exclude', null, InputOption::VALUE_REQUIRED, 'Comma-separated directories to skip');
         $this->addOption('fix-hints', null, InputOption::VALUE_NONE, 'Show how to fix each issue');
         $this->addOption('ci', null, InputOption::VALUE_NONE, 'Exit 1 if any issues match the scan');
