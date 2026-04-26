@@ -89,7 +89,7 @@ class FixturesTest extends TestCase
         $m = (new ScanManager())->run(
             new ScanOptions(
                 path: __DIR__.'/../fixtures/vulnerable',
-                only: ['rce', 'ssrf', 'deserialize', 'upload', 'secrets', 'cors', 'redirect', 'crypto', 'jwt', 'api'],
+                only: ['rce', 'ssrf', 'deserialize', 'upload', 'secrets', 'cors', 'redirect', 'crypto', 'jwt', 'api', 'session', 'headers'],
                 format: 'summary'
             )
         );
@@ -110,5 +110,7 @@ class FixturesTest extends TestCase
         $this->assertArrayHasKey('crypto', $byScanner);
         $this->assertArrayHasKey('jwt', $byScanner);
         $this->assertArrayHasKey('api', $byScanner);
+        $this->assertArrayHasKey('session', $byScanner);
+        $this->assertArrayHasKey('headers', $byScanner);
     }
 }

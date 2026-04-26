@@ -120,6 +120,8 @@ class ConsoleReporter
             'crypto' => 'CRYPTO',
             'jwt' => 'JWT',
             'api' => 'API',
+            'session' => 'SESSION',
+            'headers' => 'HEADERS',
             'csrf' => 'CSRF',
             'mass' => 'MASS',
             'auth' => 'AUTH',

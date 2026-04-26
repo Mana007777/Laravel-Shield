@@ -27,6 +27,8 @@ class ScanManager
             new Scanners\CryptoScanner(),
             new Scanners\JwtScanner(),
             new Scanners\ApiSecurityScanner(),
+            new Scanners\SessionSecurityScanner(),
+            new Scanners\SecurityHeadersScanner(),
             new Scanners\CsrfScanner(),
             new Scanners\MassAssignmentScanner(),
             new Scanners\AuthScanner(),

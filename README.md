@@ -97,6 +97,8 @@ php artisan shield:scan --ci --severity=high
 | `crypto` | Weak hashes (`md5`, `sha1`), weak cipher/modes, insecure RNG (`rand`/`mt_rand`) in token contexts |
 | `jwt` | JWT misconfig patterns (none/verify disabled, weak claim-validation visibility) |
 | `api` | API-focused checks on `routes/api.php` and API controllers: missing auth/throttle, direct input without validation, debug/error leakage, token-handling visibility |
+| `session` | Session/cookie hardening checks (`secure`, `http_only`, `same_site`) and weak manual cookie flags |
+| `headers` | Security-header coverage checks (HSTS, X-Content-Type-Options, CSP, frame/referrer policy) and weak header values |
 | `csrf` | `VerifyCsrfToken` disabled on a route, non-empty CSRF `except` list, HTML forms (POST/PUT/…) missing `@csrf` / `_token` |
 | `mass` | Eloquent: `public $guarded = []`, empty `protected $guarded`, or model with no `fillable` / `guarded` |
 | `auth` | Routes whose path looks like admin/dashboard and no obvious `auth` middleware on the line; controllers `store`/`update`/… with no `authorize` |

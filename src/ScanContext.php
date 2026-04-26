@@ -48,6 +48,9 @@ class ScanContext
             'rest' => 'api',
             'endpoint' => 'api',
             'endpoints' => 'api',
+            'cookies' => 'session',
+            'http-headers' => 'headers',
+            'security-headers' => 'headers',
         ];
         $toCanon = function (string $k) use ($aliases): string {
             $k = strtolower($k);
