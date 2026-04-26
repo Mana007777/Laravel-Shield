@@ -2,7 +2,7 @@
 
 Security scanner for **Laravel** projects: CLI tool (standalone or `php artisan`) to find common misconfigurations, missing validation, SQL/XSS/CSRF risks, dependency concerns, and debug leftovers. PHP **8.1+**, **Laravel 10/11/12/13** (optional; the binary works on any app tree), **Symfony 6/7/8**. MIT license.
 
-## Compatibility
+## Compatibilityy
 
 - PHP: `^8.1`
 - Laravel Illuminate components: `^10.0|^11.0|^12.0|^13.0`
