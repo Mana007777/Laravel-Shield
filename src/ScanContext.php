@@ -40,6 +40,11 @@ class ScanContext
             'deser' => 'deserialize',
             'uploads' => 'upload',
             'keys' => 'secrets',
+            'cross-origin' => 'cors',
+            'traversal' => 'redirect',
+            'lfi' => 'redirect',
+            'cryptography' => 'crypto',
+            'tokens' => 'jwt',
         ];
         $toCanon = function (string $k) use ($aliases): string {
             $k = strtolower($k);

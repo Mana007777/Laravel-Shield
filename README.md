@@ -64,6 +64,10 @@ Useful flags:
 | `deserialize` | `unserialize()` usage, especially with request/cookie input (object injection risk) |
 | `upload` | Upload sinks (`move`, `store`, `putFile`, `move_uploaded_file`) with weak/no visible validation patterns |
 | `secrets` | Hardcoded secret patterns (live tokens, AWS-like keys, private key blocks, suspicious credential literals) |
+| `cors` | Permissive CORS config (`allowed_origins=*`, credentials with broad origins) and manual wildcard CORS headers |
+| `redirect` | Open redirect and path traversal/LFI-style file sinks fed by request input |
+| `crypto` | Weak hashes (`md5`, `sha1`), weak cipher/modes, insecure RNG (`rand`/`mt_rand`) in token contexts |
+| `jwt` | JWT misconfig patterns (none/verify disabled, weak claim-validation visibility) |
 | `csrf` | `VerifyCsrfToken` disabled on a route, non-empty CSRF `except` list, HTML forms (POST/PUT/…) missing `@csrf` / `_token` |
 | `mass` | Eloquent: `public $guarded = []`, empty `protected $guarded`, or model with no `fillable` / `guarded` |
 | `auth` | Routes whose path looks like admin/dashboard and no obvious `auth` middleware on the line; controllers `store`/`update`/… with no `authorize` |
