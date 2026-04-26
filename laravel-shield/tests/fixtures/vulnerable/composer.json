@@ -1,0 +1,6 @@
+{
+  "name": "fixture/vulnerable",
+  "require": {
+    "php": "^8.1"
+  }
+}

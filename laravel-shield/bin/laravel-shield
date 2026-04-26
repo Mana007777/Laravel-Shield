@@ -1,0 +1,32 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+$autoload = null;
+$paths = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../autoload.php',
+];
+foreach ($paths as $p) {
+    if (is_file($p)) {
+        $autoload = $p;
+        break;
+    }
+}
+if ($autoload === null) {
+    fwrite(STDERR, "Composer autoload not found. Run: composer install\n");
+    exit(1);
+}
+require $autoload;
+
+use YourName\LaravelShield\Console\IgnoreCommand;
+use YourName\LaravelShield\Console\RunScanCommand;
+use YourName\LaravelShield\Version;
+use Symfony\Component\Console\Application;
+
+$app = new Application('Laravel Shield', Version::VERSION);
+$app->add(new RunScanCommand());
+$app->add(new IgnoreCommand());
+$app->setDefaultCommand('scan', true);
+$app->run();

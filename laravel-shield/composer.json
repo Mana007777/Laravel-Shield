@@ -1,0 +1,50 @@
+{
+  "name": "yourname/laravel-shield",
+  "description": "Security vulnerability scanner for Laravel applications",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Your Name",
+      "email": "you@example.com"
+    }
+  ],
+  "require": {
+    "php": "^8.1",
+    "ext-json": "*",
+    "symfony/console": "^6.0|^7.0",
+    "symfony/process": "^6.0|^7.0",
+    "nikic/php-parser": "^4.15|^5.0",
+    "illuminate/support": "^10.0|^11.0",
+    "illuminate/console": "^10.0|^11.0"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^8.0|^9.0",
+    "phpunit/phpunit": "^10.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "YourName\\LaravelShield\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "YourName\\LaravelShield\\Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "bin": [
+    "bin/laravel-shield"
+  ],
+  "extra": {
+    "laravel": {
+      "providers": [
+        "YourName\\LaravelShield\\ShieldServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}

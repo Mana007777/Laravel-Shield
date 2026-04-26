@@ -1,0 +1,36 @@
+# Example GitHub Actions workflow: run laravel-shield in CI
+# Place as .github/workflows/laravel-shield.yml in your app repository
+
+name: Security scan (Laravel Shield)
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  shield:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          tools: composer:v2
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress
+
+      - name: Run Laravel Shield
+        run: vendor/bin/laravel-shield --format=summary --ci
+        # Fails the job if the scan finds any issue (with default severity filter)
+
+      - name: Optional JSON report artifact
+        if: always()
+        run: |
+          vendor/bin/laravel-shield --format=json --output=storage/shield-report.json || true
+        # Upload storage/shield-report.json with actions/upload-artifact if desired
