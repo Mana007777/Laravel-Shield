@@ -1,11 +1,12 @@
 # marlla3x / laravel-shield
 
-Security scanner for **Laravel** projects: CLI tool (standalone or `php artisan`) to find common misconfigurations, missing validation, SQL/XSS/CSRF risks, dependency concerns, and debug leftovers. PHP **8.1+**, **Laravel 10/11/12/13** (optional; the binary works on any app tree). MIT license.
+Security scanner for **Laravel** projects: CLI tool (standalone or `php artisan`) to find common misconfigurations, missing validation, SQL/XSS/CSRF risks, dependency concerns, and debug leftovers. PHP **8.1+**, **Laravel 10/11/12/13** (optional; the binary works on any app tree), **Symfony 6/7/8**. MIT license.
 
 ## Compatibility
 
 - PHP: `^8.1`
 - Laravel Illuminate components: `^10.0|^11.0|^12.0|^13.0`
+- Symfony components: `symfony/console` and `symfony/process` `^6.0|^7.0|^8.0`
 - Works as:
   - Artisan command inside Laravel apps (`php artisan shield:scan`)
   - standalone binary (`vendor/bin/laravel-shield`)
@@ -127,6 +128,8 @@ See [`docs/github-actions-example.yml`](docs/github-actions-example.yml). Typica
   - install a tagged release like `^1.0`, or explicitly use `dev-main`.
 - Laravel version conflict during install:
   - ensure your app dependencies are compatible with your Laravel major version (`composer why-not laravel/framework ^13.0` is useful).
+- Symfony lock-file conflict during install:
+  - if Composer reports a partial update conflict, run `composer require marlla3x/laravel-shield:^1.0 --dev -W` to allow dependency graph resolution.
 - `--ci` fails on local `.env` values:
   - expected for weak local development secrets; either set secure env vars in CI or lower severity threshold for that pipeline.
 
