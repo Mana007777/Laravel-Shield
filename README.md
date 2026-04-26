@@ -13,7 +13,7 @@ Security scanner for **Laravel** projects: CLI tool (standalone or `php artisan`
 
 ## Installation
 
-**Per project (recommended)**
+**Per projectt (recommended)**
 
 ```bash
 composer require marlla3x/laravel-shield:^1.0 --dev
