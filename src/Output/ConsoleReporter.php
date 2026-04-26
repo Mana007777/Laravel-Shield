@@ -113,6 +113,7 @@ class ConsoleReporter
             'csrf' => 'CSRF',
             'mass' => 'MASS',
             'auth' => 'AUTH',
+            'middleware' => 'MW',
             'xss' => 'XSS',
             'dependency' => 'DEPS',
             'debug' => 'DEBUG',

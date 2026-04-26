@@ -62,6 +62,7 @@ Useful flags:
 | `csrf` | `VerifyCsrfToken` disabled on a route, non-empty CSRF `except` list, HTML forms (POST/PUT/…) missing `@csrf` / `_token` |
 | `mass` | Eloquent: `public $guarded = []`, empty `protected $guarded`, or model with no `fillable` / `guarded` |
 | `auth` | Routes whose path looks like admin/dashboard and no obvious `auth` middleware on the line; controllers `store`/`update`/… with no `authorize` |
+| `middleware` | Reads `app/Http/Kernel.php` (global stack, `web` / `api` groups, route aliases), `bootstrap/app.php` (Laravel 11+), lists `app/Http/Middleware/*`, and aggregates `->middleware()` usage in `routes/*.php`. Flags `web` without CSRF / `api` without obvious throttle. Use `--only=middleware` or `mw` |
 | `xss` | Blade `{!! … !!}` with variables, dangerous `echo` of request in views |
 | `dependency` | Missing `composer.lock` info, `composer audit` (JSON), a few Packagist `abandoned` checks (network, capped) |
 | `debug` | `config('app.debug')` hard-coded, `dd`/`dump` outside tests, Telescope/Debugbar config hints |

@@ -57,7 +57,9 @@ class ValidationScanner extends BaseScanner
         }
 
         $v = new ControllerValidationVisitor();
-        (new NodeTraverser())->addVisitor($v)->traverse($ast);
+        $t = new NodeTraverser();
+        $t->addVisitor($v);
+        $t->traverse($ast);
 
         $out = [];
         foreach ($v->candidates as $c) {
@@ -159,7 +161,7 @@ class ControllerValidationVisitor extends NodeVisitorAbstract
             return null;
         }
 
-        (new NodeTraverser())->addVisitor(new class ($m) extends NodeVisitorAbstract {
+        $inner = new class ($m) extends NodeVisitorAbstract {
             public function __construct(private MethodScan $m)
             {
             }
@@ -189,7 +191,10 @@ class ControllerValidationVisitor extends NodeVisitorAbstract
                     }
                 }
             }
-        })->traverse($node->getStmts() ?? []);
+        };
+        $t2 = new NodeTraverser();
+        $t2->addVisitor($inner);
+        $t2->traverse($node->getStmts() ?? []);
 
         $this->candidates[] = $m;
         return null;

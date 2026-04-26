@@ -20,6 +20,7 @@ class ScanManager
             new Scanners\CsrfScanner(),
             new Scanners\MassAssignmentScanner(),
             new Scanners\AuthScanner(),
+            new Scanners\MiddlewareScanner(),
             new Scanners\XssScanner(),
             new Scanners\DependencyScanner(),
             new Scanners\DebugScanner(),

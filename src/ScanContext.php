@@ -32,6 +32,8 @@ class ScanContext
             'deps' => 'dependency',
             'dependencies' => 'dependency',
             'packages' => 'dependency',
+            'mw' => 'middleware',
+            'http' => 'middleware',
         ];
         $toCanon = function (string $k) use ($aliases): string {
             $k = strtolower($k);
