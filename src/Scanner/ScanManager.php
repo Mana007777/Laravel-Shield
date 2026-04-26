@@ -26,6 +26,7 @@ class ScanManager
             new Scanners\OpenRedirectTraversalScanner(),
             new Scanners\CryptoScanner(),
             new Scanners\JwtScanner(),
+            new Scanners\ApiSecurityScanner(),
             new Scanners\CsrfScanner(),
             new Scanners\MassAssignmentScanner(),
             new Scanners\AuthScanner(),

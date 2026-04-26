@@ -45,6 +45,9 @@ class ScanContext
             'lfi' => 'redirect',
             'cryptography' => 'crypto',
             'tokens' => 'jwt',
+            'rest' => 'api',
+            'endpoint' => 'api',
+            'endpoints' => 'api',
         ];
         $toCanon = function (string $k) use ($aliases): string {
             $k = strtolower($k);

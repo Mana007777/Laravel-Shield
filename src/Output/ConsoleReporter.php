@@ -119,6 +119,7 @@ class ConsoleReporter
             'redirect' => 'REDIRECT',
             'crypto' => 'CRYPTO',
             'jwt' => 'JWT',
+            'api' => 'API',
             'csrf' => 'CSRF',
             'mass' => 'MASS',
             'auth' => 'AUTH',
