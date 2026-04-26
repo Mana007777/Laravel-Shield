@@ -60,7 +60,7 @@ class FixturesTest extends TestCase
         $this->assertNotEmpty($m->issues);
     }
 
-    public function test_middleware_scanner_parses_kernel_and_lists_stack(): void
+    public function test_middleware_scanner_reports_only_actionable_findings(): void
     {
         $m = (new ScanManager())->run(
             new ScanOptions(path: __DIR__.'/../fixtures/middleware_laravel10', only: ['middleware'], format: 'summary')
@@ -69,19 +69,7 @@ class FixturesTest extends TestCase
             $m->issues,
             static fn ($i) => $i->scanner === 'middleware'
         );
-        $this->assertNotEmpty($mw, 'Expected middleware inventory INFO issues for Kernel + custom classes');
-        $hasGlobal = false;
-        $hasGroup = false;
-        foreach ($mw as $i) {
-            if (str_contains($i->title, 'Global middleware')) {
-                $hasGlobal = true;
-            }
-            if (str_contains($i->title, 'Middleware group')) {
-                $hasGroup = true;
-            }
-        }
-        $this->assertTrue($hasGlobal, 'Should report global stack from Kernel');
-        $this->assertTrue($hasGroup, 'Should report at least one group from Kernel');
+        $this->assertEmpty($mw, 'Middleware scanner should not emit inventory-only informational issues.');
     }
 
     public function test_advanced_offensive_scanners_detect_vulnerable_fixture(): void

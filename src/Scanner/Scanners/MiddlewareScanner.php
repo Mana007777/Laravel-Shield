@@ -20,62 +20,18 @@ class MiddlewareScanner extends BaseScanner
             return [];
         }
 
+        // Middleware Scanner reports only actionable security findings.
+        // Informational middleware inventory is intentionally not emitted as issues.
         $issues = [];
         $base = $context->basePath;
         $kernel = $base.'/app/Http/Kernel.php';
-        $bootstrap = $base.'/bootstrap/app.php';
 
         if (is_file($kernel)) {
             $extracted = LaravelKernelMiddlewareExtractor::extract($kernel);
             if ($extracted !== null) {
-                $line = $extracted['line'] ?? 1;
-                $issues[] = $this->makeIssue(
-                    $kernel,
-                    $line,
-                    Severity::INFO,
-                    'Global middleware stack ('.count($extracted['global']).' classes)',
-                    $this->truncate($this->formatList($extracted['global'])),
-                    'These run on every HTTP request (outer → inner). Remove anything not required globally.',
-                );
-                foreach ($extracted['groups'] as $groupName => $classes) {
-                    $issues[] = $this->makeIssue(
-                        $kernel,
-                        $line,
-                        Severity::INFO,
-                        'Middleware group `'.$groupName.'` ('.count($classes).' entries)',
-                        $this->truncate($this->formatList($classes)),
-                        'Routes using the `'.$groupName.'` group receive this stack before route-level middleware.',
-                    );
-                }
-                if ($extracted['aliases'] !== []) {
-                    $issues[] = $this->makeIssue(
-                        $kernel,
-                        $line,
-                        Severity::INFO,
-                        'Route middleware aliases ('.count($extracted['aliases']).')',
-                        $this->truncate($this->formatAliases($extracted['aliases'])),
-                        'Use `->middleware(\'alias\')` in routes; see `app/Http/Kernel.php` for the class map.',
-                    );
-                }
                 $this->checkKernelSecurity($kernel, $extracted, $issues);
             }
-        } else {
-            $issues[] = $this->makeIssue(
-                $kernel,
-                1,
-                Severity::INFO,
-                'No `app/Http/Kernel.php` (Laravel 11+ style)',
-                'Middleware is usually registered in `bootstrap/app.php` via `Application::configure()->withMiddleware(...)`.',
-                'Use the bootstrap scan below; `php artisan route:list` shows effective middleware per route.',
-            );
         }
-
-        if (is_file($bootstrap)) {
-            $issues = array_merge($issues, $this->scanBootstrapMiddleware($bootstrap));
-        }
-
-        $issues = array_merge($issues, $this->listCustomMiddlewareClasses($context));
-        $issues = array_merge($issues, $this->scanRouteMiddlewareUsage($context));
 
         return $this->filterSuppressed($this->getKey(), $issues);
     }

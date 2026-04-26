@@ -36,7 +36,7 @@ class ConsoleReporter
         $map = $this->scannerLabels();
         foreach ($scanners as $key) {
             $n = $by[$key] ?? 0;
-            $lab = str_pad('['.($map[$key] ?? strtoupper($key)).']', 12);
+            $lab = str_pad(($map[$key] ?? strtoupper($key)), 22);
             $this->out->writeln(sprintf(' <fg=gray>%s</> ........  %d  <fg=gray>issues</>', $lab, $n));
         }
         $this->out->writeln('');
@@ -107,30 +107,30 @@ class ConsoleReporter
     private function scannerLabels(): array
     {
         return [
-            'env' => 'ENV',
-            'validation' => 'VALID',
-            'sql' => 'SQL',
-            'rce' => 'RCE',
-            'ssrf' => 'SSRF',
-            'deserialize' => 'DESER',
-            'upload' => 'UPLOAD',
-            'secrets' => 'SECRETS',
-            'cors' => 'CORS',
-            'redirect' => 'REDIRECT',
-            'crypto' => 'CRYPTO',
-            'jwt' => 'JWT',
-            'api' => 'API',
-            'session' => 'SESSION',
-            'headers' => 'HEADERS',
-            'idor' => 'IDOR',
-            'exposure' => 'EXPOSE',
-            'csrf' => 'CSRF',
-            'mass' => 'MASS',
-            'auth' => 'AUTH',
-            'middleware' => 'MW',
-            'xss' => 'XSS',
-            'dependency' => 'DEPS',
-            'debug' => 'DEBUG',
+            'env' => 'Environment Scanner',
+            'validation' => 'Validation Scanner',
+            'sql' => 'SQL Injection Scanner',
+            'rce' => 'Command Injection Scanner',
+            'ssrf' => 'SSRF Scanner',
+            'deserialize' => 'Deserialization Scanner',
+            'upload' => 'File Upload Scanner',
+            'secrets' => 'Secrets Scanner',
+            'cors' => 'CORS Scanner',
+            'redirect' => 'Redirect/Traversal Scanner',
+            'crypto' => 'Crypto Scanner',
+            'jwt' => 'JWT Scanner',
+            'api' => 'API Security Scanner',
+            'session' => 'Session Security Scanner',
+            'headers' => 'Security Headers Scanner',
+            'idor' => 'IDOR Scanner',
+            'exposure' => 'Public Exposure Scanner',
+            'csrf' => 'CSRF Scanner',
+            'mass' => 'Mass Assignment Scanner',
+            'auth' => 'Authorization Scanner',
+            'middleware' => 'Middleware Scanner',
+            'xss' => 'XSS Scanner',
+            'dependency' => 'Dependency Scanner',
+            'debug' => 'Debug Scanner',
         ];
     }
 }
