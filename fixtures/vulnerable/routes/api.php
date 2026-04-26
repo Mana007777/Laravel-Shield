@@ -5,4 +5,5 @@ use App\Http\Controllers\Api\UsersApiController;
 
 Route::post('/admin/users/create', [UsersApiController::class, 'store']);
 Route::delete('/user/profile/delete', [UsersApiController::class, 'destroy']);
+Route::get('/users/{id}', [UsersApiController::class, 'show']);
 

@@ -29,6 +29,8 @@ class ScanManager
             new Scanners\ApiSecurityScanner(),
             new Scanners\SessionSecurityScanner(),
             new Scanners\SecurityHeadersScanner(),
+            new Scanners\IdorScanner(),
+            new Scanners\PublicExposureScanner(),
             new Scanners\CsrfScanner(),
             new Scanners\MassAssignmentScanner(),
             new Scanners\AuthScanner(),

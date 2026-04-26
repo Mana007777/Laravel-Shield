@@ -122,6 +122,8 @@ class ConsoleReporter
             'api' => 'API',
             'session' => 'SESSION',
             'headers' => 'HEADERS',
+            'idor' => 'IDOR',
+            'exposure' => 'EXPOSE',
             'csrf' => 'CSRF',
             'mass' => 'MASS',
             'auth' => 'AUTH',

@@ -51,6 +51,10 @@ class ScanContext
             'cookies' => 'session',
             'http-headers' => 'headers',
             'security-headers' => 'headers',
+            'idor-bola' => 'idor',
+            'bola' => 'idor',
+            'public-files' => 'exposure',
+            'leaks' => 'exposure',
         ];
         $toCanon = function (string $k) use ($aliases): string {
             $k = strtolower($k);
