@@ -32,8 +32,17 @@ class ScanCommandRunner
     public function run(ScanOptions $options, ?OutputInterface $out = null): int
     {
         $out ??= new NullOutput();
+        $isDecorated = method_exists($out, 'isDecorated') ? $out->isDecorated() : false;
         $spinner = null;
-        if (!$out instanceof NullOutput && !$options->watch) {
+        $done = 0;
+        $ordered = $this->scannerOrder();
+        $enabled = array_values(array_filter(
+            $ordered,
+            fn (string $key) => $this->shouldRunScanner($options->only, $key)
+        ));
+        $total = count($enabled);
+
+        if (!$out instanceof NullOutput && !$options->watch && $isDecorated) {
             $spinner = new ProgressIndicator(
                 $out,
                 null,
@@ -42,13 +51,19 @@ class ScanCommandRunner
                 '✓'
             );
             $spinner->start('Scanning security scanners...');
+        } elseif (!$out instanceof NullOutput && !$options->watch) {
+            $out->writeln(sprintf('Scanning %d security scanners...', $total));
         }
 
         $result = $this->manager->run(
             $options,
             null,
-            static function (string $scannerKey) use (&$spinner): void {
+            static function (string $scannerKey) use (&$spinner, &$done, $total, $out): void {
+                $done++;
                 if ($spinner === null) {
+                    if (!$out instanceof NullOutput) {
+                        $out->writeln(sprintf('[%d/%d] Completed scanner: %s', $done, $total, $scannerKey));
+                    }
                     return;
                 }
                 $spinner->setMessage('Completed scanner: '.$scannerKey);
@@ -58,6 +73,8 @@ class ScanCommandRunner
 
         if ($spinner !== null) {
             $spinner->finish('Scan complete');
+        } elseif (!$out instanceof NullOutput && !$options->watch) {
+            $out->writeln('Scan complete');
         }
 
         $issues = $this->filterSeverity($result->issues, $options->minSeverity);
@@ -106,6 +123,57 @@ class ScanCommandRunner
             $issues,
             static fn (Issue $i) => $i->severity->atLeast($min)
         ));
+    }
+
+    /**
+     * @param list<string> $only
+     */
+    private function shouldRunScanner(array $only, string $scannerKey): bool
+    {
+        if ($only === []) {
+            return true;
+        }
+        $aliases = [
+            'mass-assignment' => 'mass',
+            'assign' => 'mass',
+            'deps' => 'dependency',
+            'dependencies' => 'dependency',
+            'packages' => 'dependency',
+            'mw' => 'middleware',
+            'http' => 'middleware',
+            'cmd' => 'rce',
+            'command' => 'rce',
+            'exec' => 'rce',
+            'deser' => 'deserialize',
+            'uploads' => 'upload',
+            'keys' => 'secrets',
+            'cross-origin' => 'cors',
+            'traversal' => 'redirect',
+            'lfi' => 'redirect',
+            'cryptography' => 'crypto',
+            'tokens' => 'jwt',
+            'rest' => 'api',
+            'endpoint' => 'api',
+            'endpoints' => 'api',
+            'cookies' => 'session',
+            'http-headers' => 'headers',
+            'security-headers' => 'headers',
+            'idor-bola' => 'idor',
+            'bola' => 'idor',
+            'public-files' => 'exposure',
+            'leaks' => 'exposure',
+        ];
+        $toCanon = static function (string $k) use ($aliases): string {
+            $k = strtolower($k);
+            return $aliases[$k] ?? $k;
+        };
+        $target = $toCanon($scannerKey);
+        foreach ($only as $item) {
+            if ($toCanon($item) === $target) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
