@@ -67,6 +67,7 @@ Useful flags:
 - `--watch` — poll the tree every 2s (rough “watch” mode)
 - `--no-score` — hide the 0–100 score line
 - Files listed in `.gitignore` and `.shieldignore` are skipped by default and are not scanned/counting in findings.
+- Terminal scans now show a progress bar while scanners are running.
 
 Common workflows:
 

@@ -41,7 +41,7 @@ class ScanManager
         ];
     }
 
-    public function run(ScanOptions $options, ?ScanContext $context = null): ScanResult
+    public function run(ScanOptions $options, ?ScanContext $context = null, ?callable $afterScanner = null): ScanResult
     {
         $path = realpath($options->path) ?: $options->path;
         $exclude = $options->exclude !== [] ? $options->exclude : ['vendor', 'node_modules', 'storage', 'bootstrap/cache', 'tests', 'fixtures'];
@@ -55,6 +55,9 @@ class ScanManager
             }
             $issues = $scanner->scan($context);
             $result->merge($issues);
+            if ($afterScanner !== null) {
+                $afterScanner($scanner->getKey());
+            }
         }
 
         return $result;
