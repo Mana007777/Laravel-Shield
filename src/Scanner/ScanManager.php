@@ -16,6 +16,7 @@ class ScanManager
         return [
             new Scanners\EnvScanner(),
             new Scanners\ValidationScanner(),
+            new Scanners\LivewireSecurityScanner(),
             new Scanners\SqlInjectionScanner(),
             new Scanners\CommandInjectionScanner(),
             new Scanners\SsrfScanner(),

@@ -134,4 +134,26 @@ class FixturesTest extends TestCase
         $this->assertArrayHasKey('risk', $data);
         $this->assertIsString($data['risk']);
     }
+
+    public function test_livewire_scanner_detects_security_findings(): void
+    {
+        $m = (new ScanManager())->run(
+            new ScanOptions(path: __DIR__.'/../fixtures/vulnerable', only: ['livewire'], format: 'summary')
+        );
+        $this->assertNotEmpty($m->issues);
+
+        $titles = array_map(static fn ($i) => $i->title, $m->issues);
+        $foundProp = false;
+        $foundAuthz = false;
+        foreach ($titles as $title) {
+            if (str_contains($title, 'public property')) {
+                $foundProp = true;
+            }
+            if (str_contains($title, 'authorization')) {
+                $foundAuthz = true;
+            }
+        }
+        $this->assertTrue($foundProp);
+        $this->assertTrue($foundAuthz);
+    }
 }

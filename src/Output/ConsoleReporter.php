@@ -110,6 +110,7 @@ class ConsoleReporter
         return [
             'env' => 'Environment Scanner',
             'validation' => 'Validation Scanner',
+            'livewire' => 'Livewire Security Scanner',
             'sql' => 'SQL Injection Scanner',
             'rce' => 'Command Injection Scanner',
             'ssrf' => 'SSRF Scanner',

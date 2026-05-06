@@ -34,6 +34,8 @@ class ScanContext
         $aliases = [
             'mass-assignment' => 'mass',
             'assign' => 'mass',
+            'lw' => 'livewire',
+            'wire' => 'livewire',
             'deps' => 'dependency',
             'dependencies' => 'dependency',
             'packages' => 'dependency',

@@ -7,6 +7,7 @@ use Livewire\Component;
 
 class AccountSettings extends Component
 {
+    public bool $is_admin = false;
     public string $name = '';
     public string $bio = '';
 

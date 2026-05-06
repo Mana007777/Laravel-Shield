@@ -59,7 +59,7 @@ Useful flags:
 
 - `--format=table` (default) | `json` | `summary`
 - `--severity=high` — only report that severity and above
-- `--only=env,sql` — run selected scanners
+- `--only=env,sql` — run selected scanners (e.g. `--only=livewire,auth,idor`)
 - `--exclude=node_modules` — *replace* the default exclude list when you pass a non-empty value (or extend via `config/shield.php` in Laravel)
 - `--fix-hints` — print short remediation text per finding
 - `--ci` — exit code `1` if any issue remains after filters
@@ -88,6 +88,7 @@ php artisan shield:scan --ci --severity=high
 |-----|----------------|
 | `env` | `.env` / `.env.example`: `APP_DEBUG` in production, weak `DB_PASSWORD`, short/missing `APP_KEY`, test-like secrets, `.env` not in `.gitignore` |
 | `validation` | Controllers and Livewire components: request/input handling and state-changing actions with no visible `validate()`/FormRequest |
+| `livewire` | Livewire-specific checks: mutable sensitive public props (without `#[Locked]`), state-changing actions without visible authorization, risky upload usage |
 | `sql` | `DB::…` with concatenation, `*Raw()` with `$` and no `?` bindings, `unprepared` |
 | `rce` | Command execution sinks: `exec`, `system`, `shell_exec`, `passthru`, `proc_open`, `popen`, backticks; escalates if dynamic/user input appears |
 | `ssrf` | Dynamic outbound request targets in `Http::get/post`, `curl_setopt(CURLOPT_URL, ...)`, `file_get_contents($url)` style sinks |
