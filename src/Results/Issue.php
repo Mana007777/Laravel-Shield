@@ -12,6 +12,7 @@ class Issue
         public string $description,
         public string $recommendation,
         public string $scanner,
+        public string $risk = '',
     ) {
     }
 
@@ -28,6 +29,7 @@ class Issue
             'description' => $this->description,
             'recommendation' => $this->recommendation,
             'scanner' => $this->scanner,
+            'risk' => $this->risk,
         ];
     }
 }

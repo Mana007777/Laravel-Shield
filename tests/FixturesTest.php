@@ -103,4 +103,35 @@ class FixturesTest extends TestCase
         $this->assertArrayHasKey('idor', $byScanner);
         $this->assertArrayHasKey('exposure', $byScanner);
     }
+
+    public function test_validation_scanner_detects_livewire_unsafe_action(): void
+    {
+        $m = (new ScanManager())->run(
+            new ScanOptions(path: __DIR__.'/../fixtures/vulnerable', only: ['validation'], format: 'summary')
+        );
+
+        $livewireFindings = array_filter(
+            $m->issues,
+            static fn ($i) => $i->scanner === 'validation' && str_contains($i->title, 'Livewire')
+        );
+
+        $this->assertNotEmpty($livewireFindings);
+    }
+
+    public function test_issue_array_contains_risk_field(): void
+    {
+        $issue = new Issue(
+            file: '/tmp/example.php',
+            line: 1,
+            severity: Severity::HIGH,
+            title: 'Test issue',
+            description: 'desc',
+            recommendation: 'fix',
+            scanner: 'test'
+        );
+
+        $data = $issue->toArray();
+        $this->assertArrayHasKey('risk', $data);
+        $this->assertIsString($data['risk']);
+    }
 }

@@ -66,6 +66,7 @@ Useful flags:
 - `--output=report.json` — also write a JSON report
 - `--watch` — poll the tree every 2s (rough “watch” mode)
 - `--no-score` — hide the 0–100 score line
+- Files listed in `.gitignore` and `.shieldignore` are skipped by default and are not scanned/counting in findings.
 
 Common workflows:
 
@@ -85,7 +86,7 @@ php artisan shield:scan --ci --severity=high
 | Key | What it does |
 |-----|----------------|
 | `env` | `.env` / `.env.example`: `APP_DEBUG` in production, weak `DB_PASSWORD`, short/missing `APP_KEY`, test-like secrets, `.env` not in `.gitignore` |
-| `validation` | Controllers: `Request` with `input`/`get`/`all` and no `validate` / FormRequest on resource-like actions |
+| `validation` | Controllers and Livewire components: request/input handling and state-changing actions with no visible `validate()`/FormRequest |
 | `sql` | `DB::…` with concatenation, `*Raw()` with `$` and no `?` bindings, `unprepared` |
 | `rce` | Command execution sinks: `exec`, `system`, `shell_exec`, `passthru`, `proc_open`, `popen`, backticks; escalates if dynamic/user input appears |
 | `ssrf` | Dynamic outbound request targets in `Http::get/post`, `curl_setopt(CURLOPT_URL, ...)`, `file_get_contents($url)` style sinks |
@@ -118,6 +119,8 @@ For Blade files, you can also use Blade comments:
 ```
 
 Use ignores only after manual review.
+
+Each finding includes a **risk** statement in table and JSON outputs to help prioritize remediation in CI and code review.
 
 ## Configuration
 

@@ -33,6 +33,11 @@ class ValidationScanner extends BaseScanner
             }
             $issues = array_merge($issues, $this->parseControllerFile($file));
         }
+        foreach (['app/Livewire', 'app/Http/Livewire'] as $livewireDir) {
+            foreach ($context->findFiles($livewireDir, 'php', false) as $file) {
+                $issues = array_merge($issues, $this->parseLivewireFile($file));
+            }
+        }
 
         return $this->filterSuppressed($this->getKey(), $issues);
     }
@@ -94,6 +99,67 @@ class ValidationScanner extends BaseScanner
         }
 
         return $out;
+    }
+
+    /**
+     * @return list<Issue>
+     */
+    private function parseLivewireFile(string $file): array
+    {
+        $code = (string) @file_get_contents($file);
+        if ($code === '') {
+            return [];
+        }
+        if (!str_contains($code, 'extends Component') && !str_contains($code, 'Livewire\\Component')) {
+            return [];
+        }
+
+        $lines = preg_split("/\R/", $code) ?: [];
+        $out = [];
+        $actionNames = ['save', 'update', 'store', 'create', 'submit', 'delete'];
+
+        foreach ($lines as $idx => $line) {
+            if (!preg_match('/public\s+function\s+([a-zA-Z_]\w*)\s*\(/', $line, $m)) {
+                continue;
+            }
+            $method = strtolower($m[1]);
+            if (!in_array($method, $actionNames, true)) {
+                continue;
+            }
+
+            $chunk = $this->methodChunk($lines, $idx);
+            $mutatesData = (bool) preg_match('/(::create\(|->(?:create|update|fill|forceFill|save|delete|insert|upsert)\()/', $chunk);
+            $hasValidation = str_contains($chunk, 'validate(') || str_contains($chunk, '$rules');
+
+            if ($mutatesData && !$hasValidation) {
+                $out[] = $this->makeIssue(
+                    $file,
+                    $idx + 1,
+                    Severity::HIGH,
+                    'Livewire state mutation without validation',
+                    "Livewire action `{$m[1]}()` appears to write/update data without visible validation.",
+                    'Run `$this->validate()` (or a dedicated validator/form object) before create/update/save operations.',
+                    'Unvalidated Livewire-bound input can lead to mass assignment, data tampering, or persistent XSS when stored content is later rendered.',
+                );
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param list<string> $lines
+     */
+    private function methodChunk(array $lines, int $start): string
+    {
+        $chunk = [];
+        for ($i = $start; $i < count($lines); $i++) {
+            if ($i > $start && preg_match('/^\s*(public|protected|private)\s+function\s+/', $lines[$i])) {
+                break;
+            }
+            $chunk[] = $lines[$i];
+        }
+        return implode("\n", $chunk);
     }
 }
 

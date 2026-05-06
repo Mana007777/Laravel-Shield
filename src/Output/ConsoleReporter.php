@@ -95,6 +95,7 @@ class ConsoleReporter
     {
         $loc = basename($i->file).($i->line > 0 ? ':'.$i->line : '');
         $line = $this->tagFor($i->severity).htmlspecialchars($i->title, ENT_QUOTES, 'UTF-8').'</>  <fg=gray>'.htmlspecialchars($loc, ENT_QUOTES, 'UTF-8').'</>';
+        $line .= '  <fg=yellow>Risk: '.htmlspecialchars($i->risk, ENT_QUOTES, 'UTF-8').'</>';
         if ($fix) {
             $line .= '  <info>↳ '.htmlspecialchars($i->recommendation, ENT_QUOTES, 'UTF-8').'</info>';
         }

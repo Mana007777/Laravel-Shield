@@ -10,6 +10,11 @@ use FilesystemIterator;
 class ScanContext
 {
     /**
+     * @var list<string>|null
+     */
+    private ?array $ignorePatterns = null;
+
+    /**
      * @param list<string> $exclude
      * @param list<string> $onlyScanners
      */
@@ -72,14 +77,19 @@ class ScanContext
     protected function isExcludedPath(string $absolutePath): bool
     {
         $rel = ltrim(str_replace($this->basePath, '', $absolutePath), '/\\');
+        $rel = str_replace('\\', '/', $rel);
         foreach ($this->exclude as $e) {
             $e = trim($e, '/\\');
             if ($e === '') {
                 continue;
             }
+            $e = str_replace('\\', '/', $e);
             if (str_starts_with($rel, $e.'/') || $rel === $e) {
                 return true;
             }
+        }
+        if ($this->matchesIgnorePattern($rel)) {
+            return true;
         }
         return false;
     }
@@ -173,5 +183,72 @@ class ScanContext
             $out[] = $path;
         }
         return $out;
+    }
+
+    private function matchesIgnorePattern(string $relativePath): bool
+    {
+        foreach ($this->getIgnorePatterns() as $pattern) {
+            if ($this->pathMatchesPattern($relativePath, $pattern)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function getIgnorePatterns(): array
+    {
+        if ($this->ignorePatterns !== null) {
+            return $this->ignorePatterns;
+        }
+
+        $paths = [
+            $this->basePath.'/.gitignore',
+            $this->basePath.'/.shieldignore',
+        ];
+
+        $patterns = ['.git/'];
+        foreach ($paths as $path) {
+            if (!is_file($path)) {
+                continue;
+            }
+            $content = (string) @file_get_contents($path);
+            if ($content === '') {
+                continue;
+            }
+            $lines = preg_split("/\R/", $content) ?: [];
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if ($line === '' || str_starts_with($line, '#') || str_starts_with($line, '!')) {
+                    continue;
+                }
+                $patterns[] = str_replace('\\', '/', $line);
+            }
+        }
+
+        $this->ignorePatterns = array_values(array_unique($patterns));
+        return $this->ignorePatterns;
+    }
+
+    private function pathMatchesPattern(string $relativePath, string $pattern): bool
+    {
+        $path = ltrim(str_replace('\\', '/', $relativePath), '/');
+        $p = ltrim(str_replace('\\', '/', trim($pattern)), '/');
+        if ($p === '') {
+            return false;
+        }
+
+        if (str_ends_with($p, '/')) {
+            $dir = rtrim($p, '/');
+            return $path === $dir || str_starts_with($path, $dir.'/');
+        }
+
+        if (str_contains($p, '*') || str_contains($p, '?')) {
+            return fnmatch($p, $path) || fnmatch($p, basename($path));
+        }
+
+        return $path === $p || str_starts_with($path, $p.'/');
     }
 }

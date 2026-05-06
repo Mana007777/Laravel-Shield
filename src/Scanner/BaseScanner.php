@@ -22,6 +22,7 @@ abstract class BaseScanner
         string $title,
         string $description,
         string $recommendation,
+        ?string $risk = null,
     ): Issue {
         return new Issue(
             $file,
@@ -31,6 +32,7 @@ abstract class BaseScanner
             $description,
             $recommendation,
             $this->getKey(),
+            $risk ?? $this->defaultRiskForSeverity($severity),
         );
     }
 
@@ -83,5 +85,16 @@ abstract class BaseScanner
             }
         }
         return $out;
+    }
+
+    private function defaultRiskForSeverity(Severity $severity): string
+    {
+        return match ($severity) {
+            Severity::CRITICAL => 'High likelihood of compromise, data breach, or remote code execution.',
+            Severity::HIGH => 'Likely exploitable issue that can expose or modify sensitive data.',
+            Severity::MEDIUM => 'Meaningful hardening gap that may be chained with other weaknesses.',
+            Severity::LOW => 'Low-impact weakness or weak default that should be tightened.',
+            Severity::INFO => 'Informational security signal to review and harden proactively.',
+        };
     }
 }
