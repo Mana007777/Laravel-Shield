@@ -7,7 +7,7 @@ use Marlla3x\LaravelShield\Output\JsonReporter;
 use Marlla3x\LaravelShield\Results\Issue;
 use Marlla3x\LaravelShield\Results\Severity;
 use Marlla3x\LaravelShield\Scanner\ScanManager;
-use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Console\Helper\ProgressIndicator;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -32,36 +32,25 @@ class ScanCommandRunner
     public function run(ScanOptions $options, ?OutputInterface $out = null): int
     {
         $out ??= new NullOutput();
-        $ordered = $this->scannerOrder();
-        $enabled = array_values(array_filter(
-            $ordered,
-            fn (string $k) => $this->shouldRunScanner($options->only, $k)
-        ));
-
-        $progress = null;
+        $spinner = null;
         if (!$out instanceof NullOutput && !$options->watch) {
-            $progress = new ProgressBar($out, max(1, count($enabled)));
-            $progress->setFormat(' %current%/%max% [%bar%] %percent:3s%%  %message%');
-            $progress->setMessage('Scanning...');
-            $progress->start();
+            $spinner = new ProgressIndicator($out);
+            $spinner->start('Scanning security scanners...');
         }
 
         $result = $this->manager->run(
             $options,
             null,
-            static function (string $scannerKey) use (&$progress): void {
-                if ($progress === null) {
+            static function (string $scannerKey) use (&$spinner): void {
+                if ($spinner === null) {
                     return;
                 }
-                $progress->setMessage('Done: '.$scannerKey);
-                $progress->advance();
+                $spinner->advance('Completed scanner: '.$scannerKey);
             }
         );
 
-        if ($progress !== null) {
-            $progress->setMessage('Scan complete');
-            $progress->finish();
-            $out->writeln('');
+        if ($spinner !== null) {
+            $spinner->finish('Scan complete');
         }
 
         $issues = $this->filterSeverity($result->issues, $options->minSeverity);
@@ -112,58 +101,4 @@ class ScanCommandRunner
         ));
     }
 
-    /**
-     * @param list<string> $only
-     */
-    private function shouldRunScanner(array $only, string $scannerKey): bool
-    {
-        if ($only === []) {
-            return true;
-        }
-
-        $aliases = [
-            'mass-assignment' => 'mass',
-            'assign' => 'mass',
-            'deps' => 'dependency',
-            'dependencies' => 'dependency',
-            'packages' => 'dependency',
-            'mw' => 'middleware',
-            'http' => 'middleware',
-            'cmd' => 'rce',
-            'command' => 'rce',
-            'exec' => 'rce',
-            'deser' => 'deserialize',
-            'uploads' => 'upload',
-            'keys' => 'secrets',
-            'cross-origin' => 'cors',
-            'traversal' => 'redirect',
-            'lfi' => 'redirect',
-            'cryptography' => 'crypto',
-            'tokens' => 'jwt',
-            'rest' => 'api',
-            'endpoint' => 'api',
-            'endpoints' => 'api',
-            'cookies' => 'session',
-            'http-headers' => 'headers',
-            'security-headers' => 'headers',
-            'idor-bola' => 'idor',
-            'bola' => 'idor',
-            'public-files' => 'exposure',
-            'leaks' => 'exposure',
-        ];
-
-        $toCanon = static function (string $k) use ($aliases): string {
-            $k = strtolower($k);
-            return $aliases[$k] ?? $k;
-        };
-
-        $target = $toCanon($scannerKey);
-        foreach ($only as $item) {
-            if ($toCanon($item) === $target) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }
