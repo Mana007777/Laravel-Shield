@@ -135,6 +135,26 @@ class ApiSecurityScanner extends BaseScanner
                             'Remove debug output and return standardized sanitized error responses.',
                         );
                     }
+                    if (preg_match('/->withoutMiddleware\s*\(\s*\[?\s*[\'"]auth/i', $line)) {
+                        $issues[] = $this->makeIssue(
+                            $file,
+                            $n,
+                            Severity::CRITICAL,
+                            'API endpoint explicitly removes auth middleware',
+                            'Auth middleware appears intentionally bypassed for an API action.',
+                            'Do not remove auth middleware for sensitive endpoints; isolate public endpoints and apply least privilege.',
+                        );
+                    }
+                    if (preg_match('/Hash::make\s*\(\s*\$request->(all|input|get)\s*\(/i', $line)) {
+                        $issues[] = $this->makeIssue(
+                            $file,
+                            $n,
+                            Severity::HIGH,
+                            'Password hashing appears to use broad request input',
+                            'Hashing unspecific request payload can lead to logic bugs and unsafe credential handling.',
+                            'Hash only validated dedicated password fields (e.g. `$request->string(\"password\")`).',
+                        );
+                    }
                     if (preg_match('/->withToken\s*\(|Authorization[\'"]\s*=>\s*[\'"]Bearer/i', $line)) {
                         $issues[] = $this->makeIssue(
                             $file,

@@ -56,6 +56,29 @@ class FileUploadScanner extends BaseScanner
                         'Add strict validation and malware scanning, and prevent direct execution from upload directories.',
                     );
                 }
+
+                if (preg_match('/(clientOriginalName|getClientOriginalName|getClientOriginalExtension)\s*\(/i', $line)) {
+                    $issues[] = $this->makeIssue(
+                        $file,
+                        $n,
+                        Severity::HIGH,
+                        'Upload flow trusts client-provided filename or extension',
+                        'Client-controlled file names/extensions can bypass naive filters and poison storage paths.',
+                        'Generate server-side random names, validate MIME+magic bytes, and map extensions from trusted server logic.',
+                    );
+                }
+
+                if (preg_match('/->store(?:As)?\s*\([^)]*(["\'])public\1/i', $line)
+                    || preg_match('/->disk\s*\(\s*(["\'])public\1\s*\)/i', $line)) {
+                    $issues[] = $this->makeIssue(
+                        $file,
+                        $n,
+                        Severity::MEDIUM,
+                        'Upload written to public disk',
+                        'Publicly served upload storage increases exposure to direct access and content-type confusion.',
+                        'Prefer private disk with signed access URLs and explicit content-disposition/content-type controls.',
+                    );
+                }
             }
         }
 

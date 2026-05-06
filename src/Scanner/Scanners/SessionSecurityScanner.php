@@ -24,6 +24,16 @@ class SessionSecurityScanner extends BaseScanner
         $cfg = $context->basePath.'/config/session.php';
         if (is_file($cfg)) {
             $c = (string) file_get_contents($cfg);
+            if (preg_match("/'driver'\\s*=>\\s*['\"]cookie['\"]/i", $c)) {
+                $issues[] = $this->makeIssue(
+                    $cfg,
+                    $this->lineOf($c, "'driver'"),
+                    Severity::MEDIUM,
+                    'Session driver set to cookie',
+                    'Cookie session driver stores full session payload client-side and can expand tampering/exposure risk.',
+                    'Prefer `database`, `redis`, or `file` drivers for production and keep session payload minimal.',
+                );
+            }
             if (preg_match("/'secure'\\s*=>\\s*false/i", $c)) {
                 $issues[] = $this->makeIssue(
                     $cfg,
@@ -52,6 +62,16 @@ class SessionSecurityScanner extends BaseScanner
                     'Weak or disabled SameSite policy',
                     'Session cookie SameSite appears unset or permissive.',
                     'Prefer `lax` or `strict` unless cross-site requirements explicitly need `none` with HTTPS.',
+                );
+            }
+            if (preg_match("/'expire_on_close'\\s*=>\\s*false/i", $c) && preg_match("/'lifetime'\\s*=>\\s*\d{3,}/i", $c)) {
+                $issues[] = $this->makeIssue(
+                    $cfg,
+                    $this->lineOf($c, "'lifetime'"),
+                    Severity::LOW,
+                    'Long-lived session lifetime configuration detected',
+                    'Extended session persistence can increase account takeover window after cookie theft.',
+                    'Reduce session lifetime for sensitive apps and rotate session IDs after privilege elevation.',
                 );
             }
         }

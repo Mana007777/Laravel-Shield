@@ -2,6 +2,9 @@
 
 namespace Marlla3x\LaravelShield\Scanner\Scanners;
 
+use FilesystemIterator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use Marlla3x\LaravelShield\Results\Issue;
 use Marlla3x\LaravelShield\Results\Severity;
 use Marlla3x\LaravelShield\ScanContext;
@@ -44,45 +47,51 @@ class PublicExposureScanner extends BaseScanner
             }
         }
 
-        $highPatterns = [
-            '*.sql',
-            '*.bak',
-            '*.old',
-            '*.zip',
-            '*.tar',
-            '*.gz',
-            'phpinfo.php',
-            'info.php',
-            'test.php',
-        ];
-        foreach ($highPatterns as $pat) {
-            foreach (glob($public.'/'.$pat) ?: [] as $f) {
-                if (!is_file($f)) {
-                    continue;
-                }
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($public, FilesystemIterator::SKIP_DOTS)
+        );
+        /** @var \SplFileInfo $file */
+        foreach ($iterator as $file) {
+            if (!$file->isFile()) {
+                continue;
+            }
+            $f = $file->getPathname();
+            $relative = ltrim(str_replace($public, '', $f), '/\\');
+            $name = strtolower($file->getFilename());
+            $ext = strtolower($file->getExtension());
+
+            if ($name === 'phpinfo.php' || $name === 'info.php' || $name === 'test.php') {
                 $issues[] = $this->makeIssue(
                     $f,
                     1,
                     Severity::HIGH,
-                    'Potentially exposed backup/debug artifact in public directory',
-                    'Backup, debug, or archive file exists under `public/`.',
-                    'Delete from web root and move backups outside deploy artifacts.',
+                    'Debug probe file exposed in public directory',
+                    'A diagnostic/debug PHP file is reachable from the public web root.',
+                    'Delete probe files from production images and block execution of unmanaged scripts.',
                 );
             }
-        }
 
-        foreach (glob($public.'/storage/**/*.php') ?: [] as $f) {
-            if (!is_file($f)) {
-                continue;
+            if (in_array($ext, ['sql', 'bak', 'old', 'zip', 'tar', 'gz', '7z', 'rar', 'log'], true)) {
+                $issues[] = $this->makeIssue(
+                    $f,
+                    1,
+                    Severity::HIGH,
+                    'Potentially exposed backup or artifact in public directory',
+                    'Backup/archive/log artifact exists under `public/` and may disclose source/data.',
+                    'Move artifacts out of web root, enforce deploy allowlists, and deny direct download where possible.',
+                );
             }
-            $issues[] = $this->makeIssue(
-                $f,
-                1,
-                Severity::HIGH,
-                'Executable PHP file found under public storage path',
-                'User-controlled upload paths should not contain executable PHP files.',
-                'Block PHP execution in upload directories via web server config and clean suspicious files.',
-            );
+
+            if (str_starts_with(str_replace('\\', '/', $relative), 'storage/') && $ext === 'php') {
+                $issues[] = $this->makeIssue(
+                    $f,
+                    1,
+                    Severity::CRITICAL,
+                    'Executable PHP file found under public storage path',
+                    'User-controlled upload paths should not contain executable PHP files.',
+                    'Block PHP execution in upload directories at web-server level and quarantine suspicious files immediately.',
+                );
+            }
         }
 
         return $this->filterSuppressed($this->getKey(), $this->dedupe($issues));
