@@ -34,7 +34,13 @@ class ScanCommandRunner
         $out ??= new NullOutput();
         $spinner = null;
         if (!$out instanceof NullOutput && !$options->watch) {
-            $spinner = new ProgressIndicator($out);
+            $spinner = new ProgressIndicator(
+                $out,
+                null,
+                80,
+                ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'],
+                '✓'
+            );
             $spinner->start('Scanning security scanners...');
         }
 
@@ -45,7 +51,8 @@ class ScanCommandRunner
                 if ($spinner === null) {
                     return;
                 }
-                $spinner->advance('Completed scanner: '.$scannerKey);
+                $spinner->setMessage('Completed scanner: '.$scannerKey);
+                $spinner->advance();
             }
         );
 
