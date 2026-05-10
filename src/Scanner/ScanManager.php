@@ -46,7 +46,26 @@ class ScanManager
     {
         $path = realpath($options->path) ?: $options->path;
         $exclude = $options->exclude !== [] ? $options->exclude : ['vendor', 'node_modules', 'storage', 'bootstrap/cache', 'tests', 'fixtures'];
-        $context ??= new ScanContext($path, $exclude, $options->only);
+        $maxEntropy = 512000;
+        if (\function_exists('config')) {
+            try {
+                $c = config('shield.max_entropy_file_bytes');
+                if ($c !== null) {
+                    $maxEntropy = (int) $c;
+                }
+            } catch (\Throwable) {
+                // No Laravel container (standalone tests / binary)
+            }
+        }
+        $context ??= new ScanContext(
+            $path,
+            $exclude,
+            $options->only,
+            entropyThreshold: $options->entropyThreshold,
+            entropyEnabled: !$options->noEntropy,
+            maxEntropyFileBytes: $maxEntropy,
+            dependencyUpdateHints: $options->updateHints,
+        );
 
         $result = new ScanResult($path);
 

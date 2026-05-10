@@ -3,6 +3,10 @@
 namespace Marlla3x\LaravelShield;
 
 use Marlla3x\LaravelShield\Commands\AddIgnoreCommand;
+use Marlla3x\LaravelShield\Commands\AuditLogCommand;
+use Marlla3x\LaravelShield\Commands\BaselineCommand;
+use Marlla3x\LaravelShield\Commands\ConfigDiffCommand;
+use Marlla3x\LaravelShield\Commands\FixRestoreCommand;
 use Marlla3x\LaravelShield\Commands\ScanCommand;
 use Illuminate\Support\ServiceProvider;
 
@@ -22,6 +26,10 @@ class ShieldServiceProvider extends ServiceProvider
             $this->commands([
                 ScanCommand::class,
                 AddIgnoreCommand::class,
+                BaselineCommand::class,
+                FixRestoreCommand::class,
+                ConfigDiffCommand::class,
+                AuditLogCommand::class,
             ]);
         }
         $this->publishes([__DIR__.'/../config/shield.php' => config_path('shield.php')], 'shield-config');

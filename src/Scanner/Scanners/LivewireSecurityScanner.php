@@ -20,14 +20,146 @@ class LivewireSecurityScanner extends BaseScanner
             return [];
         }
 
+        try {
+            $issues = [];
+            foreach (['app/Livewire', 'app/Http/Livewire'] as $dir) {
+                foreach ($context->findFiles($dir, 'php', false) as $file) {
+                    $issues = array_merge($issues, $this->scanLivewireComponent($file));
+                }
+            }
+            $issues = array_merge($issues, $this->scanVoltAndBladeLivewire($context));
+
+            return $this->filterSuppressed($this->getKey(), $this->dedupe($issues));
+        } catch (\Throwable $e) {
+            return [
+                $this->makeIssue(
+                    $context->basePath,
+                    1,
+                    Severity::MEDIUM,
+                    'Livewire scanner encountered an error',
+                    $e->getMessage(),
+                    'Re-run with a clean checkout or report a bug if this persists.',
+                    null,
+                    'livewire-scanner-error',
+                ),
+            ];
+        }
+    }
+
+    /**
+     * @return list<Issue>
+     */
+    private function scanVoltAndBladeLivewire(ScanContext $context): array
+    {
         $issues = [];
-        foreach (['app/Livewire', 'app/Http/Livewire'] as $dir) {
-            foreach ($context->findFiles($dir, 'php', false) as $file) {
-                $issues = array_merge($issues, $this->scanLivewireComponent($file));
+        foreach (['resources/views/livewire', 'resources/views/components'] as $sub) {
+            $dir = $context->basePath.'/'.$sub;
+            if (!is_dir($dir)) {
+                continue;
+            }
+            $it = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS)
+            );
+            foreach ($it as $file) {
+                if (!$file->isFile()) {
+                    continue;
+                }
+                $path = $file->getPathname();
+                if (!str_ends_with($path, '.php') && !str_ends_with($path, '.blade.php')) {
+                    continue;
+                }
+                $issues = array_merge($issues, $this->scanLivewireComponent($path));
+                $issues = array_merge($issues, $this->scanVoltPatterns($path));
             }
         }
 
-        return $this->filterSuppressed($this->getKey(), $this->dedupe($issues));
+        return $issues;
+    }
+
+    /**
+     * @return list<Issue>
+     */
+    private function scanVoltPatterns(string $file): array
+    {
+        $code = (string) @file_get_contents($file);
+        if ($code === '') {
+            return [];
+        }
+        $issues = [];
+        $lines = preg_split("/\R/", $code) ?: [];
+        foreach ($lines as $i => $line) {
+            $n = $i + 1;
+            if (preg_match('/\b(state|computed)\s*\(\s*function\s*\([^)]*\)\s*\{[^}]*auth\s*\(\s*\)\s*->\s*user\s*\(/i', $line)
+                && !str_contains($line, 'authorize') && !str_contains($line, 'Gate::')) {
+                $issues[] = $this->makeIssue(
+                    $file,
+                    $n,
+                    Severity::MEDIUM,
+                    'Volt state/computed references `auth()->user()` without visible guard',
+                    'Ensure authorization runs before exposing user-derived state.',
+                    'Add `$this->authorize(...)` or policy checks in the closure.',
+                    null,
+                    'volt-auth-guard',
+                );
+            }
+            if (preg_match('/wire:model(?!\.defer)\s*=\s*["\'][^"\']*(?:password|token|secret)/i', $line)) {
+                $issues[] = $this->makeIssue(
+                    $file,
+                    $n,
+                    Severity::HIGH,
+                    'Sensitive `wire:model` binding without defer',
+                    'Password/token fields should use `wire:model.defer` or server-only handling.',
+                    'Switch to `wire:model.defer` and validate server-side.',
+                    null,
+                    'livewire-sensitive-model',
+                );
+            }
+        }
+        if (preg_match('/#\[Computed\][\s\S]{0,800}?\$(?:password|secret|token|ssn)/i', $code)
+            && !str_contains($code, 'authorize(')) {
+            $issues[] = $this->makeIssue(
+                $file,
+                1,
+                Severity::HIGH,
+                '`#[Computed]` may expose sensitive attributes',
+                'Computed properties are exposed to the client; verify authorization.',
+                'Authorize before exposing model attributes; avoid sensitive fields.',
+                null,
+                'livewire-computed-sensitive',
+            );
+        }
+        if (preg_match('/#\[On\s*\(/i', $code)) {
+            foreach (['save', 'delete', 'update', 'destroy', 'create'] as $verb) {
+                if (preg_match('/#\[On[^\]]+\][\s\S]{0,1200}?function\s+\w+\s*\([^)]*\)\s*\{[^}]*\$this->'.$verb.'\s*\(/i', $code)
+                    && !str_contains($code, 'authorize(')) {
+                    $issues[] = $this->makeIssue(
+                        $file,
+                        1,
+                        Severity::HIGH,
+                        '`#[On]` listener may perform state changes without authorization',
+                        'Event handlers that mutate data should call `authorize()`.',
+                        'Add `$this->authorize(...)` at the start of the handler.',
+                        null,
+                        'livewire-on-unauth',
+                    );
+                    break;
+                }
+            }
+        }
+        if (preg_match('/\$this->(?:dispatch|emit)\s*\([^)]*(?:password|token|secret|ssn)/i', $code)) {
+            $issues[] = $this->makeIssue(
+                $file,
+                1,
+                Severity::MEDIUM,
+                '`dispatch()` / `emit()` may broadcast sensitive data',
+                'Event payloads can reach parent components or the browser.',
+                'Avoid dispatching secrets; use server-side-only channels.',
+                null,
+                'livewire-dispatch-sensitive',
+            );
+        }
+
+        return $issues;
     }
 
     /**
@@ -107,7 +239,36 @@ class LivewireSecurityScanner extends BaseScanner
                     "Method `{$method}()` appears to modify persistent state without clear authorize/policy checks.",
                     'Call `$this->authorize(...)` or `Gate::authorize(...)` before mutating data.',
                     'Missing authorization checks in Livewire actions can permit IDOR-style unauthorized updates or deletes.',
+                    null,
+                    'livewire-mutate-unauth',
                 );
+            }
+        }
+
+        if (preg_match('/wire:click\s*=\s*["\'][^"\']+/', $code)) {
+            if (preg_match('/wire:click\s*=\s*["\'](\w+)/', $code, $wm)) {
+                $handler = $wm[1];
+                if ($handler !== '' && preg_match('/public\s+function\s+'.$handler.'\s*\(/i', $code, $hm, PREG_OFFSET_CAPTURE)) {
+                    $off = (int) $hm[0][1];
+                    $blk = $this->methodBlockFromOffset($code, $off);
+                    if ($blk !== null) {
+                        $ln = 1 + substr_count(substr($code, 0, $off), "\n");
+                        $writes = (bool) preg_match('/->(?:save|update|delete|create)\(/', $blk);
+                        $hasAuthz = str_contains($blk, 'authorize(');
+                        if ($writes && !$hasAuthz) {
+                            $issues[] = $this->makeIssue(
+                                $file,
+                                $ln,
+                                Severity::MEDIUM,
+                                '`wire:click` target performs writes without visible `authorize()`',
+                                "Method `{$handler}()` may persist data without authorization checks.",
+                                'Authorize before database writes in Livewire actions.',
+                                null,
+                                'livewire-click-unauth',
+                            );
+                        }
+                    }
+                }
             }
         }
 

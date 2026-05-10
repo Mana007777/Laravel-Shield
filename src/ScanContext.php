@@ -22,8 +22,42 @@ class ScanContext
         public string $basePath,
         public array $exclude = ['vendor', 'node_modules', 'storage', 'bootstrap/cache', 'tests', 'fixtures'],
         public array $onlyScanners = [],
+        public float $entropyThreshold = 4.5,
+        public bool $entropyEnabled = true,
+        public int $maxEntropyFileBytes = 512000,
+        public bool $dependencyUpdateHints = false,
     ) {
         $this->basePath = rtrim(realpath($basePath) ?: $basePath, '/');
+    }
+
+    public function shouldScanEntropyForFile(string $absolutePath): bool
+    {
+        if (!$this->entropyEnabled) {
+            return false;
+        }
+        if ($this->isExcludedPath($absolutePath)) {
+            return false;
+        }
+        $rel = ltrim(str_replace($this->basePath, '', $absolutePath), '/\\');
+        $rel = str_replace('\\', '/', $rel);
+        if (preg_match('#(^|/)(vendor|node_modules)(/|$)#', $rel)) {
+            return false;
+        }
+        if (preg_match('#(^|/)database/migrations(/|$)#i', $rel)) {
+            return false;
+        }
+        if (preg_match('#(^|/)tests(/|$)#i', $rel) || str_contains($rel, 'Test.php') || str_contains($rel, '/fixtures/')) {
+            return false;
+        }
+        if (str_ends_with($rel, '.lock')) {
+            return false;
+        }
+        $size = @filesize($absolutePath);
+        if ($size !== false && $size > $this->maxEntropyFileBytes) {
+            return false;
+        }
+
+        return true;
     }
 
     public function shouldRun(string $scannerKey): bool

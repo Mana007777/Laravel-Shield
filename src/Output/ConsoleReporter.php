@@ -6,6 +6,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Marlla3x\LaravelShield\Results\Issue;
 use Marlla3x\LaravelShield\Results\ScanResult;
 use Marlla3x\LaravelShield\Results\Severity;
+use Marlla3x\LaravelShield\Risk\FileRiskBreakdown;
 use Marlla3x\LaravelShield\ScanOptions;
 use Marlla3x\LaravelShield\SecurityScore;
 
@@ -29,6 +30,9 @@ class ConsoleReporter
      */
     public function printSummary(ScanResult $result, ScanOptions $options, array $scanners): void
     {
+        if ($options->breakdown) {
+            return;
+        }
         if (!in_array($options->format, ['summary', 'table'], true)) {
             return;
         }
@@ -38,6 +42,24 @@ class ConsoleReporter
             $n = $by[$key] ?? 0;
             $lab = str_pad(($map[$key] ?? strtoupper($key)), 22);
             $this->out->writeln(sprintf(' <fg=gray>%s</> ........  %d  <fg=gray>issues</>', $lab, $n));
+        }
+        $this->out->writeln('');
+    }
+
+    /**
+     * @param list<Issue> $issues
+     */
+    public function printBreakdown(ScanResult $result, array $issues, ScanOptions $options): void
+    {
+        $rows = FileRiskBreakdown::aggregate($issues, $result->scannedPath);
+        $rows = array_slice($rows, 0, max(1, $options->top));
+        $this->out->writeln(' <fg=gray>Controller / File                    Risk Score   Findings</>');
+        $this->out->writeln(' <fg=gray>─────────────────────────────────────────────────────────</>');
+        foreach ($rows as $r) {
+            $file = str_pad(substr($r['file'], 0, 36), 36);
+            $score = str_pad((string) $r['score'].'/100', 10, ' ', STR_PAD_LEFT);
+            $cnt = (string) $r['count'];
+            $this->out->writeln(sprintf(' <info>%s</>  %s  %s', $file, $score, $cnt));
         }
         $this->out->writeln('');
     }
@@ -55,6 +77,12 @@ class ConsoleReporter
             return;
         }
         if ($options->format !== 'table') {
+            return;
+        }
+        if ($options->breakdown) {
+            if ($options->showScore) {
+                $this->out->writeln(SecurityScore::line($issues));
+            }
             return;
         }
 

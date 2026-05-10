@@ -23,6 +23,8 @@ abstract class BaseScanner
         string $description,
         string $recommendation,
         ?string $risk = null,
+        ?string $rule = null,
+        ?string $projectLabel = null,
     ): Issue {
         return new Issue(
             $file,
@@ -33,6 +35,8 @@ abstract class BaseScanner
             $recommendation,
             $this->getKey(),
             $risk ?? $this->defaultRiskForSeverity($severity),
+            $rule ?? '',
+            $projectLabel,
         );
     }
 

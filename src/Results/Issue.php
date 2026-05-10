@@ -13,7 +13,12 @@ class Issue
         public string $recommendation,
         public string $scanner,
         public string $risk = '',
+        public string $rule = '',
+        public ?string $projectLabel = null,
     ) {
+        if ($this->rule === '') {
+            $this->rule = \Marlla3x\LaravelShield\Util\FindingHasher::deriveRuleFromTitle($this->title);
+        }
     }
 
     /**
@@ -30,6 +35,8 @@ class Issue
             'recommendation' => $this->recommendation,
             'scanner' => $this->scanner,
             'risk' => $this->risk,
+            'rule' => $this->rule,
+            'project' => $this->projectLabel,
         ];
     }
 }

@@ -39,7 +39,7 @@ class FixturesTest extends TestCase
         $m = (new \Marlla3x\LaravelShield\Scanner\ScanManager())->run(
             new ScanOptions(path: __DIR__.'/../fixtures/vulnerable', only: ['env'])
         );
-        $j = (new JsonReporter())->toJson($m, Version::VERSION, $m->issues);
+        $j = (new JsonReporter())->toJson($m, Version::VERSION, $m->issues, new ScanOptions());
         $d = json_decode($j, true, 512, JSON_THROW_ON_ERROR);
         $this->assertArrayHasKey('issues', $d);
     }
@@ -133,6 +133,7 @@ class FixturesTest extends TestCase
         $data = $issue->toArray();
         $this->assertArrayHasKey('risk', $data);
         $this->assertIsString($data['risk']);
+        $this->assertArrayHasKey('rule', $data);
     }
 
     public function test_livewire_scanner_detects_security_findings(): void
