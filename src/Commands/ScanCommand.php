@@ -28,7 +28,7 @@ class ScanCommand extends Command
         {--no-entropy : Skip entropy-based secret heuristics}
         {--entropy-threshold=4.5 : Entropy threshold (bits per character)}
         {--all-projects : Scan all paths from config shield.projects}
-        {--interactive|i : Interactive finding browser after scan}
+        {--i|interactive : Interactive finding browser after scan}
         {--update-hints : Run composer outdated hints (dependency scanner)}';
 
     protected $description = 'Run Laravel Shield security scan';
