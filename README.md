@@ -97,6 +97,9 @@ php artisan shield:scan --diff
 
 Findings are hashed as `[scanner, relative file, line, rule]`. Laravel apps store the baseline at `storage/shield-baseline.json`; standalone trees use `.shield-baseline.json` in the project root. If no baseline exists, `--diff` prints a warning and shows the full scan.
 
+When you run with `--diff`, both the scanner counts and the security score are calculated from **new findings only** (findings not present in baseline).  
+That means a project can show `Security score: 100/100` in `--diff` mode when there are no new findings, even if a full scan (without `--diff`) still reports existing issues.
+
 ### Config drift (`shield:config-diff`)
 
 ```bash

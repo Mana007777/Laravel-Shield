@@ -28,7 +28,7 @@ class ConsoleReporter
     /**
      * @param list<string> $scanners ordered keys
      */
-    public function printSummary(ScanResult $result, ScanOptions $options, array $scanners): void
+    public function printSummary(ScanResult $result, ScanOptions $options, array $scanners, array $issues): void
     {
         if ($options->breakdown) {
             return;
@@ -36,7 +36,13 @@ class ConsoleReporter
         if (!in_array($options->format, ['summary', 'table'], true)) {
             return;
         }
-        $by = $result->countByScanner();
+        $by = [];
+        foreach ($issues as $issue) {
+            if (!$issue instanceof Issue) {
+                continue;
+            }
+            $by[$issue->scanner] = ($by[$issue->scanner] ?? 0) + 1;
+        }
         $map = $this->scannerLabels();
         foreach ($scanners as $key) {
             $n = $by[$key] ?? 0;

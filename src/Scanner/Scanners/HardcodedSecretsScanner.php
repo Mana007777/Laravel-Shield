@@ -134,7 +134,7 @@ class HardcodedSecretsScanner extends BaseScanner
     private static function shannonEntropy(string $s): float
     {
         $len = strlen($s);
-        if ($len === 0) {
+        if ($len === 0){
             return 0.0;
         }
         $freq = count_chars($s, 1);

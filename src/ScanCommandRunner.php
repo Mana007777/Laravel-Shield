@@ -144,7 +144,7 @@ class ScanCommandRunner
         } else {
             $c = new ConsoleReporter($out);
             $c->printBanner(Version::VERSION, $result->scannedPath);
-            $c->printSummary($result, $options, $this->scannerOrder());
+            $c->printSummary($result, $options, $this->scannerOrder(), $issues);
             if ($options->breakdown) {
                 $c->printBreakdown($result, $issues, $options);
             }

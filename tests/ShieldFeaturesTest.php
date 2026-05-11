@@ -4,15 +4,19 @@ namespace Marlla3x\LaravelShield\Tests;
 
 use Marlla3x\LaravelShield\Baseline\BaselineStore;
 use Marlla3x\LaravelShield\Fix\AutoFixEngine;
+use Marlla3x\LaravelShield\Output\ConsoleReporter;
 use Marlla3x\LaravelShield\Output\GithubReporter;
 use Marlla3x\LaravelShield\Results\Issue;
+use Marlla3x\LaravelShield\Results\ScanResult;
 use Marlla3x\LaravelShield\Results\Severity;
 use Marlla3x\LaravelShield\Risk\FileRiskBreakdown;
 use Marlla3x\LaravelShield\ScanContext;
+use Marlla3x\LaravelShield\ScanOptions;
 use Marlla3x\LaravelShield\Scanner\Scanners\HardcodedSecretsScanner;
 use Marlla3x\LaravelShield\Util\ShieldPaths;
 use Marlla3x\LaravelShield\Version;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Output\BufferedOutput;
 
 class ShieldFeaturesTest extends TestCase
 {
@@ -111,5 +115,27 @@ class ShieldFeaturesTest extends TestCase
             @unlink($tmp.'/Plain.php');
             @rmdir($tmp);
         }
+    }
+
+    public function test_summary_counts_use_filtered_issue_list(): void
+    {
+        $allIssues = [
+            new Issue('/app/a.php', 1, Severity::HIGH, 'A', 'd', 'r', 'env', '', 'r1'),
+            new Issue('/app/b.php', 1, Severity::HIGH, 'B', 'd', 'r', 'sql', '', 'r2'),
+        ];
+        $filtered = [$allIssues[0]];
+
+        $result = new ScanResult('/app', $allIssues);
+        $options = new ScanOptions(path: '/app', format: 'table');
+        $out = new BufferedOutput();
+        $reporter = new ConsoleReporter($out);
+
+        $reporter->printSummary($result, $options, ['env', 'sql'], $filtered);
+        $text = $out->fetch();
+
+        $this->assertStringContainsString('Environment Scanner', $text);
+        $this->assertStringContainsString('SQL Injection Scanner', $text);
+        $this->assertMatchesRegularExpression('/Environment Scanner\s+\.+\s+1\s+issues/', $text);
+        $this->assertMatchesRegularExpression('/SQL Injection Scanner\s+\.+\s+0\s+issues/', $text);
     }
 }
