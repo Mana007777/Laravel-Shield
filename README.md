@@ -212,7 +212,3 @@ See [`docs/github-actions-example.yml`](docs/github-actions-example.yml). Typica
 ## Security policy
 
 If you find a **security issue in this package**, please report it **privately** to the maintainers (see `composer.json` `authors` email) or your org’s process. **Do not** file critical vulnerabilities as public issues until a fix is released.
-
----
-
-*Packagist: connect your GitHub repo to `https://packagist.org` and register `marlla3x/laravel-shield`. Tag releases, e.g. `git tag v1.0.0 && git push --tags`.*
