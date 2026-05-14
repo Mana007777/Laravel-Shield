@@ -211,4 +211,4 @@ See [`docs/github-actions-example.yml`](docs/github-actions-example.yml). Typica
 
 ## Security policy
 
-If you find a **security issue in this package**, please report it **privately** to the maintainers (see `composer.json` `authors` email) or your org’s process. **Do not** file critical vulnerabilities as public issues until a fix is released.
+If you find a **security issue in this package**, please report it **privately** to **e7ifubbb@gmail.com**
